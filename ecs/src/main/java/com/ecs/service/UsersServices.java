@@ -13,7 +13,7 @@ public interface UsersServices {
   public String removeById(Integer id);
   public List<Users> getAllUsers(String field,String direction,Integer pageno,Integer records);
   public List<Address> getAllAddress(String email);
-  public String addAddress(Address address);
-  public String updateStatus(String email);
+  public String addAddress(String email,Address address);
+  public Users updateStatus(String email);
   
 }

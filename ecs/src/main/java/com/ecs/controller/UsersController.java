@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ecs.entity.Address;
 import com.ecs.entity.Users;
+import com.ecs.exceptions.OperationFaliureException;
+import com.ecs.exceptions.UserNotLoggedInException;
 import com.ecs.service.UsersServices;
 
 import jakarta.validation.Valid;
@@ -42,6 +44,23 @@ public class UsersController {
 		this.pEncoder = pEncoder;
 	}
 
+ 
+    /**
+     * It is used to register the user for either admin or user
+     * 
+     * Required fields for registration:
+     * {
+     *   "email":" ",
+     *   "password":"",
+     *   "fname":"",
+     *   "lname":"",//optional
+     *   "location":"",
+     *   "role":"" // user or admin
+     * }
+     * @param Users object with necessary field
+     * @return Users object with user_id
+     * @author Ankit choubey
+     */
     @PostMapping("/signUp")
 	public ResponseEntity<Users> signUp(@Valid @RequestBody	 Users user){
     	log.info("User controller for register user started...");
@@ -52,7 +71,15 @@ public class UsersController {
 		return new ResponseEntity<>(res,HttpStatus.CREATED);
 	}
     
-    
+    /**
+     * It is used to logIn for  a user
+     * Here username is your email address
+     * Username and password should pass in under Authorization header 
+     * "Authorization":"Basic base64Encoded(username : password)"
+     * @param Authentication object which will be taken internally for spring security so no need to pass it explicitly
+     * @return String with the message like user logged successful 
+     * @author Ankit choubey
+     */
     @GetMapping("/logIn")
     public ResponseEntity<String> signIn(Authentication auth){
     	log.info("User Controller for login started...");
@@ -64,11 +91,22 @@ public class UsersController {
     	   return new ResponseEntity<>(res,HttpStatus.ACCEPTED);
     }
     
-    
+    /**
+     * It is used to update the password of the current logged user
+     * @param Authentication object (It will be taken internally from spring security)
+     * @param New password ,passed as Request param("npassword)
+     * @return String with message like password updated successfully
+     * @author Ankit choubey
+     */
     @PatchMapping("/update/Password")
     public ResponseEntity<String> updatePassword(Authentication auth ,@RequestParam("npassword")String nPassword){
     	log.info("Controller for updating user password started...");
+    	
+    	
     	String email= auth.getName();
+    	if(email==null)
+    		  throw new UserNotLoggedInException("User should login first");
+    	
     	nPassword= pEncoder.encode(nPassword);
     	String res= uservices.updatePassword(email, nPassword);
     	log.info("Controller response,User password updated successfully");
@@ -77,10 +115,22 @@ public class UsersController {
     	
     }
     
+    
+    /**
+     * It is used to update email for authenticated user
+     * @param Authentication object
+     * @param nemail (new updated email) : RequestParam("nemail")
+     * @return Users object
+     * @author Ankit choubey
+     */
     @PatchMapping("/update/Email")
     public ResponseEntity<Users> updateEmail(Authentication auth,@RequestParam("nemail") String nemail){
     	log.info("Controller for updating email started...");
+    	
     	String email= auth.getName();
+    	if(email==null)
+  		  throw new UserNotLoggedInException("User should login first");
+    	
     	Users res= uservices.updateEmail(email,nemail);
     	log.info("Controller response ,User email updated successfully");
     	return new ResponseEntity<>(res,HttpStatus.ACCEPTED);
@@ -89,9 +139,12 @@ public class UsersController {
     
     
 	@DeleteMapping("/admin/delete/{uid}")
-	 public ResponseEntity<String> deleteUser(Authentication auth,@PathVariable("uid") Integer uid){
+	 public ResponseEntity<String> deleteUser(@PathVariable("uid") Integer uid){
 		log.info("Controller for removing user started...");
-		String email= auth.getName();
+		
+		if(uid==null)
+			 throw new OperationFaliureException("Null value passed instead of valid user id");
+		
 		String res= uservices.removeById(uid);
 		log.info("Controller response ,User removed successfully");
 		return new ResponseEntity<>(res,HttpStatus.ACCEPTED);
@@ -121,15 +174,39 @@ public class UsersController {
 	@GetMapping("/addresses")
 	public ResponseEntity<List<Address>> getAllAddress(Authentication auth){
 		log.info("Controller for getting all the user addresses started... ");
+		
 		String email= auth.getName();
+		if(email==null)
+  		  throw new UserNotLoggedInException("User should login first");
+		
 		List<Address> res= uservices.getAllAddress(email);
 		log.info("Controller response ,All addresses found successfully");
 		return new ResponseEntity<>(res,HttpStatus.ACCEPTED);
 	}
 	
-	public ResponseEntity<String> addAddress(Authentication auth,Address address){
+	@PostMapping("/address")
+	public ResponseEntity<String> addAddress(Authentication auth, @RequestBody Address address){
 		log.info("Controller for adding address for logged user started...");
+		String email= auth.getName();
 		
+		if(email==null)
+  		  throw new UserNotLoggedInException("User should login first");
+		
+		String res= uservices.addAddress(email,address);
+		log.info("Controller response ,Address has been added successfully");
+		return new ResponseEntity<>(res,HttpStatus.ACCEPTED);
+	}
+	
+	@PatchMapping("admin/update/status")
+	 public ResponseEntity<Users> updateStatus(Authentication auth){
+		log.info("Controller to change the user status started...");
+		String email= auth.getName();
+		if(email==null)
+  		  throw new UserNotLoggedInException("User should login first");
+		
+		Users res= uservices.updateStatus(email);
+		log.info("Controller response ,User status has been changed successfully");
+		return new ResponseEntity<>(res,HttpStatus.ACCEPTED);
 	}
 	
 }

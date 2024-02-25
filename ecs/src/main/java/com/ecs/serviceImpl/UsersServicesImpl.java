@@ -23,17 +23,7 @@ public class UsersServicesImpl implements UsersServices {
 		return null;
 	}
 
-	@Override
-	public String updatePassword(String email) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Users updateEmail(String email) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 
 	@Override
 	public String removeById(Integer id) {
@@ -53,8 +43,28 @@ public class UsersServicesImpl implements UsersServices {
 		return null;
 	}
 
+	
+
 	@Override
-	public String addAddress(Address address) {
+	public String updatePassword(String email, String nPassword) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Users updateEmail(String email, String nemail) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String addAddress(String email, Address address) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Users updateStatus(String email) {
 		// TODO Auto-generated method stub
 		return null;
 	}
